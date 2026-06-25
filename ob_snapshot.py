@@ -13,11 +13,20 @@ FIELDS = ["ts", "mid", "book_imb", "depth_imb25", "book_liq", "spread_bp", "wall
           "micro_bp", "oi", "oi_chg", "funding", "trend_bp"]
 
 
+HDR = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
+
+
 def post(body):
-    return requests.post(API, json=body, timeout=20).json()
+    r = requests.post(API, json=body, headers=HDR, timeout=20)
+    try:
+        return r.json()
+    except Exception:
+        print(f"NON-JSON response (status {r.status_code}):", r.text[:300]); raise
 
 
 book = post({"type": "l2Book", "coin": COIN})
+if "levels" not in book:
+    print("UNEXPECTED l2Book response:", str(book)[:300]); raise SystemExit(1)
 levels = book["levels"]
 bids = [(float(l["px"]), float(l["sz"])) for l in levels[0]]
 asks = [(float(l["px"]), float(l["sz"])) for l in levels[1]]
