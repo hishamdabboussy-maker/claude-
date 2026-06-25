@@ -1,0 +1,27 @@
+name: collect-orderbook
+on:
+  schedule:
+    - cron: '*/5 * * * *'      # every 5 min (GitHub best-effort; may be delayed)
+  workflow_dispatch:           # lets you run it manually from the Actions tab
+permissions:
+  contents: write
+concurrency:                   # avoid overlapping commits
+  group: collect
+  cancel-in-progress: false
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests pandas
+      - run: python ob_snapshot.py
+      - run: |
+          git config user.name "collector"
+          git config user.email "collector@users.noreply.github.com"
+          git add ob_cloud.csv
+          git commit -m "snapshot" || echo "no change"
+          git pull --rebase --autostash || true
+          git push || true
