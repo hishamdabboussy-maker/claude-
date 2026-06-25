@@ -1,5 +1,8 @@
 name: collect-orderbook
 on:
+  push:
+    branches: [main]
+    paths-ignore: ['ob_cloud.csv']   # code pushes trigger a test run; data commits don't (no loop)
   schedule:
     - cron: '*/5 * * * *'      # every 5 min (GitHub best-effort; may be delayed)
   workflow_dispatch:           # lets you run it manually from the Actions tab
